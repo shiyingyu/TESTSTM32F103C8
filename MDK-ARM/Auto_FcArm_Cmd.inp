@@ -1,0 +1,10 @@
+..\Core\Src\W5500\socket.c,
+..\Core\Src\W5500\socket.h,
+..\Core\Src\W5500\types.h,
+..\Core\Src\W5500\utility.c,
+..\Core\Src\W5500\utility.h,
+..\Core\Src\W5500\w5500.c,
+..\Core\Src\W5500\w5500.h,
+..\Core\Src\W5500\w5500_conf.c,
+..\Core\Src\W5500\w5500_conf.h 
+TO TESTSTM32F103C8 RTE NOPRINT
