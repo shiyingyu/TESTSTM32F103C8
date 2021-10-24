@@ -894,6 +894,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\Lib\w25qxx.c</FilePath>
             </File>
+            <File>
+              <FileName>ee24.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\Lib\ee24.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

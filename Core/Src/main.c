@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Lib/w25qxx.h"
+#include "Lib/ee24.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,6 +99,17 @@ int main(void)
 	HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, GPIO_PIN_SET);
+	
+	
+	/* EEPROM R/W test, based on https://github.com/nimaltd/ee24 */
+	uint8_t testData[6] = {'C', 'H', 'I', 'N', 'G', 'O'};
+	uint8_t data[1024];
+  if (ee24_isConnected())
+  {
+		ee24_write(0, testData, 6, 1000);
+    ee24_read(0, data, 1024, 1000);
+  }
+	
 	
 	/* SPI FLASH R/W test, based on https://github.com/nimaltd/w25qxx */
 	// block: 64k (16 sector), sector = 4kb (16 page), page = 256byte
