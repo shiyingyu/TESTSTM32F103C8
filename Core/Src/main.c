@@ -29,6 +29,8 @@
 /* USER CODE BEGIN Includes */
 #include "Lib/w25qxx.h"
 #include "Lib/ee24.h"
+#include "ht1621b.h"
+#include "rbt_delay.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -126,11 +128,47 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	
+	HT1621B_Init();
+	RBT_Delay_MS(10);
+	HT1621B_TurnOff_All();
+	//HT1621B_Scan(0, 11);
+	uint8_t i;
+	uint8_t num;
+	for (i = 0; i < 10; i ++) {
+		num = HT1621B_NUMBERS[i];
+		HT1621B_WriteRAM(0, num << 4);
+		HT1621B_WriteRAM(1, num);
+		HT1621B_WriteRAM(2, num << 4);
+		HT1621B_WriteRAM(3, num);
+		HT1621B_WriteRAM(4, num << 4);
+		HT1621B_WriteRAM(5, num);
+		HT1621B_WriteRAM(6, num << 4);
+		HT1621B_WriteRAM(7, num);
+		HT1621B_WriteRAM(8, num << 4);
+		HT1621B_WriteRAM(9, num);
+		RBT_Delay_MS(500);
+	}
+	uint8_t pData[256];
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		HAL_StatusTypeDef result = HAL_UART_Receive(&huart1, pData, 256, 50);
+		uint8_t j;
+		if (result == HAL_OK) {
+			for (int i = 0; i < 256; i ++) {
+				j = pData[i];
+			}
+		}
+		else if (result == HAL_ERROR) {
+			j = 0;
+		}
+		else if (result == HAL_TIMEOUT) {
+			j = 1;
+		}
+			
 		HAL_GPIO_TogglePin(LED_R_GPIO_Port, LED_R_Pin);
 		HAL_Delay(500);
 		

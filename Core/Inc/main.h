@@ -68,6 +68,8 @@ void Error_Handler(void);
 #define LED_B_GPIO_Port GPIOA
 #define SPI1_CS_FLASH_Pin GPIO_PIN_4
 #define SPI1_CS_FLASH_GPIO_Port GPIOA
+#define SPI1_CS_VM501_Pin GPIO_PIN_0
+#define SPI1_CS_VM501_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
