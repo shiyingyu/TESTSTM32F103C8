@@ -81,6 +81,24 @@ void HT1621B_WriteRAM(uint8_t addr, uint8_t sdata) {
 }
 
 /**
+ * @brief 读HT1621B内存
+ * @param addr 要读取的地址
+ * @return 读取的数据
+ */
+uint8_t HT1621B_ReadRAM(uint8_t addr) {
+	addr <<= 2;
+	HT1621_CS0;
+	// 命令ID：10100000 = 0xA0
+	HT1621B_SendBits(0xa0, 3);
+	// 6位地址
+	HT1621B_SendBits(addr, 6);
+	// 4位Data
+	HT1621B_SendBits(0, 4);
+	HT1621_CS1;
+	return 0;
+}
+
+/**
  * @brief 关闭所有的段码（将所有内存位置为0
  * @param num 内存地址数（每单个地址为4位）
  */
@@ -111,6 +129,9 @@ void HT1621B_TurnOn_All() {
 void HT1621B_Scan(uint8_t StartAddress, uint8_t EndAddress)
 {
 	uint8_t i, mem;
+	
+	HT1621B_TurnOff_All();
+	
 	while (StartAddress <= EndAddress)
 	{
 		mem = 0;
@@ -133,4 +154,115 @@ void HT1621B_Scan(uint8_t StartAddress, uint8_t EndAddress)
 		
 		StartAddress ++;
 	}
+}
+
+/**
+ * @brief 显示一个最大不超过5位的整数数字
+ * @note 数字范围0~99999
+ * @param Number 要显示的数字
+ * @param Dot_Position 在特定位置显示点号，0表示不显示，1~4表示特定位置
+ * @return None
+ */
+void QYH04418_Number(double Number, uint8_t Dot_Position)
+{
+	int8_t addr;
+	uint8_t has_digit = 0;
+	uint8_t value;
+	uint32_t base = 10000, num;
+	if (Dot_Position > 4) return;
+	
+	for (uint8_t i = 4; i >= Dot_Position; i --) {
+		Number *= 10;
+	}
+	if (Number > 99999 || Number < -9999) return;
+	
+	if (Number < 0) num = -Number;
+	else num = Number;
+	
+	for (addr = 1; addr <= 9; addr += 2)
+	{
+		uint8_t idx = (num / base) % 10;
+		if (idx != 0 && has_digit == 0)
+		{
+			// 第一次开始显示数字，那么如果是负数，则在前一位显示“-”号
+			if (Number < 0 && idx > 1)
+			{
+				value = 1 << 2;
+				HT1621B_WriteRAM(addr - 3, value << 4);
+			}
+			has_digit = 1;
+		}
+		
+		if (has_digit == 1)
+		{
+			value = HT1621B_NUMBERS[idx];
+		}
+		else
+		{
+			value = 0;
+		}
+		// 是否需要显示小数点
+		if (addr / 2 + 1 == Dot_Position)
+		{
+			value = value | (1 << 4);
+		}
+		HT1621B_WriteRAM(addr, value);
+		HT1621B_WriteRAM(addr - 1, value << 4);
+		num -= idx * base;
+		base /= 10;
+	}
+}
+
+/**
+ * @brief 显示摄氏度（带符号）
+ * @param Value 要显示的温度（浮点数）
+ * @param Dot_Position 小数点的位置，从左起， 0表示没有小数点）
+ * @note 小数位数与小数点是相反的，如果小数位数为1，则Dot_Position取4，若
+ *       小数位数为4，则Dot_Position取1
+ */
+void QYH04418_Celsius(double Value, uint8_t Dot_Position)
+{
+	// 清除百分比单位
+	HT1621B_WriteRAM(9, 0);
+	QYH04418_Number(Value, Dot_Position);
+	HT1621B_WriteRAM(10, 0xFF);
+}
+void QYH04418_Percent(double Value, uint8_t Dot_Position)
+{
+	int num;
+	// 清除摄氏度单位
+	HT1621B_WriteRAM(10, 0);
+	
+	QYH04418_Number(Value, Dot_Position);
+	for (uint8_t i = 4; i >= Dot_Position; i --) {
+		Value *= 10;
+	}
+	if (Value < 0) num = -Value;
+	else num = Value;
+	uint8_t value = HT1621B_NUMBERS[num % 10];
+	value = value | ( 1 << 4);
+	HT1621B_WriteRAM(9, value);
+}
+
+/**
+ * @brief 显示信号等级
+ * @param Level 取值范围为0~3
+ */
+void QYH04418_Signal(uint8_t Level)
+{
+	// 电池轮廓默认显示
+	uint8_t value = 8;
+	
+	if (Level == 0) {
+	}
+	else if (Level == 1) {
+		value += 4;
+	}
+	else if (Level == 2) {
+		value += 4 + 1;
+	}
+	else if (Level == 3) {
+		value += 4 + 1 + 2;
+	}
+	HT1621B_WriteRAM(11, value << 4);
 }

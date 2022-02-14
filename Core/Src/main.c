@@ -98,56 +98,56 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-	HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, GPIO_PIN_SET);
-	
-	
+	RBT_Delay_Init();
 	/* EEPROM R/W test, based on https://github.com/nimaltd/ee24 */
-	uint8_t testData[6] = {'C', 'H', 'I', 'N', 'G', 'O'};
-	uint8_t data[1024];
-  if (ee24_isConnected())
-  {
-		ee24_write(0, testData, 6, 1000);
-    ee24_read(0, data, 1024, 1000);
-  }
-	
+//	uint8_t testData[6] = {'C', 'H', 'I', 'N', 'G', 'O'};
+//	uint8_t data[1024];
+//  if (ee24_isConnected())
+//  {
+//		ee24_write(0, testData, 6, 1000);
+//    ee24_read(0, data, 1024, 1000);
+//  }
+//	
 	
 	/* SPI FLASH R/W test, based on https://github.com/nimaltd/w25qxx */
 	// block: 64k (16 sector), sector = 4kb (16 page), page = 256byte
 	// 1Mb = 16 block = 256 sector = 4096 page
 	// 8Mb = 128 block = 2048 sector = 32768 page
-	W25qxx_Init();
-	uint8_t wbuffer[6] = {'C', 'H', 'I', 'N', 'G', 'O'};
-	uint8_t rbuffer[6];
-	W25qxx_ReadSector(rbuffer, 1, 0, 6);
-	W25qxx_EraseSector(1);
-	W25qxx_ReadSector(rbuffer, 1, 0, 6);
-	W25qxx_WriteSector(wbuffer, 1, 0, 6);
+//	W25qxx_Init();
+//	uint8_t wbuffer[6] = {'C', 'H', 'I', 'N', 'G', 'O'};
+//	uint8_t rbuffer[6];
+//	W25qxx_ReadSector(rbuffer, 1, 0, 6);
+//	W25qxx_EraseSector(1);
+//	W25qxx_ReadSector(rbuffer, 1, 0, 6);
+//	W25qxx_WriteSector(wbuffer, 1, 0, 6);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
+	// HT1621B液晶屏演示
 	HT1621B_Init();
 	RBT_Delay_MS(10);
-	HT1621B_TurnOff_All();
 	//HT1621B_Scan(0, 11);
-	uint8_t i;
-	uint8_t num;
-	for (i = 0; i < 10; i ++) {
-		num = HT1621B_NUMBERS[i];
-		HT1621B_WriteRAM(0, num << 4);
-		HT1621B_WriteRAM(1, num);
-		HT1621B_WriteRAM(2, num << 4);
-		HT1621B_WriteRAM(3, num);
-		HT1621B_WriteRAM(4, num << 4);
-		HT1621B_WriteRAM(5, num);
-		HT1621B_WriteRAM(6, num << 4);
-		HT1621B_WriteRAM(7, num);
-		HT1621B_WriteRAM(8, num << 4);
-		HT1621B_WriteRAM(9, num);
-		RBT_Delay_MS(500);
+	// 清空液晶屏显示
+	HT1621B_TurnOff_All();
+//	// 显示信号等级（从0到3）
+//	QYH04418_Signal(0);
+//	HAL_Delay(500);
+//	QYH04418_Signal(1);
+//	HAL_Delay(500);
+//	QYH04418_Signal(2);
+//	HAL_Delay(1500);
+//	QYH04418_Signal(3);
+//	HAL_Delay(1500);
+//	// 显示摄氏度（含单位）
+//	QYH04418_Celsius(27.3, 4);
+//	HAL_Delay(1500);
+	// 显示百分比（含百分比符号）
+	QYH04418_Percent(-13.5, 4);
+	for (int i = 0; i < 1000; i ++) {
+		QYH04418_Percent( (float)i / 10 * -1, 3);
+		HAL_Delay(100);
 	}
 	uint8_t pData[256];
   while (1)

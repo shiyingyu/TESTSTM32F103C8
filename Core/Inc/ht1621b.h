@@ -40,17 +40,8 @@ void HT1621B_SendBits(uint8_t sdata, uint8_t cnt);
 void HT1621B_Scan(uint8_t StartAddress, uint8_t EndAddress);
 
 // 特定液晶屏功能封装函数
-void num_print(int num);
-void Err_print(void);
-void minus_print(void);
-void battey_level(short unsigned int level);
-void signal_method(short unsigned int method, short unsigned int strength);
-void channel_count(int channel);
-void units(short unsigned int unit); // temp=0, humi=1
-void clear(int len); // length is 16
-void symbol_HIGH(void);
-void symbol_LOW(void);
-void symbol_REFRESH(void);
-void set_print(void);
-void ON_print(void);
+void QYH04418_Number(double Number, uint8_t Dot_Position);
+void QYH04418_Celsius(double Value, uint8_t Dot_Position);
+void QYH04418_Percent(double Value, uint8_t Dot_Position);
+void QYH04418_Signal(uint8_t Level);
 #endif
