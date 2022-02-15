@@ -144,11 +144,30 @@ int main(void)
 //	QYH04418_Celsius(27.3, 4);
 //	HAL_Delay(1500);
 	// 显示百分比（含百分比符号）
-	QYH04418_Percent(-13.5, 4);
-	for (int i = 0; i < 1000; i ++) {
-		QYH04418_Percent( (float)i / 10 * -1, 3);
-		HAL_Delay(100);
-	}
+	QYH04418_Percent("0.1", 3);
+	HAL_Delay(1000);
+	QYH04418_Celsius("13.8", 4);
+	HAL_Delay(1000);
+	QYH04418_Percent("16384", 5);
+	HAL_Delay(1000);
+	QYH04418_Percent("-999.9", 6);
+	HAL_Delay(1000);
+	QYH04418_Percent("---", 3);
+	HAL_Delay(1000);
+	QYH04418_Percent("-.-.-", 5);
+	HAL_Delay(1000);
+	QYH04418_Percent("1.2.3.4.5.", 10);
+	HAL_Delay(1000);
+	QYH04418_Celsius("0", 1);
+	HAL_Delay(1000);
+	QYH04418_Percent("00000", 5);
+	HAL_Delay(1000);
+	QYH04418_Celsius("0.0", 3);
+	HAL_Delay(1000);
+	QYH04418_Percent("000000", 6);
+	HAL_Delay(1000);
+	QYH04418_Percent("1234567.8", 9);
+	HAL_Delay(1000);
 	uint8_t pData[256];
   while (1)
   {

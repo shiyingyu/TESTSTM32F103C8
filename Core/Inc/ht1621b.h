@@ -28,7 +28,7 @@ extern C {
 #define  CTRl_cmd   0x80
 #define  Data_cmd   0xa0
 
-extern uint8_t HT1621B_NUMBERS[];
+extern uint8_t QYH04418_NUMBERS[];
 
 // 基本函数
 void HT1621B_Init(void);
@@ -40,8 +40,8 @@ void HT1621B_SendBits(uint8_t sdata, uint8_t cnt);
 void HT1621B_Scan(uint8_t StartAddress, uint8_t EndAddress);
 
 // 特定液晶屏功能封装函数
-void QYH04418_Number(double Number, uint8_t Dot_Position);
-void QYH04418_Celsius(double Value, uint8_t Dot_Position);
-void QYH04418_Percent(double Value, uint8_t Dot_Position);
+void QYH04418_Number(volatile char *Number, uint8_t Length);
+void QYH04418_Celsius(char *Number, uint8_t Length);
+void QYH04418_Percent(char *Number, uint8_t Length);
 void QYH04418_Signal(uint8_t Level);
 #endif

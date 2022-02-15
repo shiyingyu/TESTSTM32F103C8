@@ -4,9 +4,11 @@
 #include "rbt_delay.h"
 #include <stdio.h>
 
-uint8_t HT1621B_NUMBERS[] = { 0XEB, 0X60, 0XC7, 0XE5, 0X6C, 0XAD, 0XAF, 0XE0, 0XEF, 0XED, 0X01};
-char error[] = { 0xE5, 0x02, 0xE7 }; //n,-,A for n-A print
-uint8_t addr;
+/**
+ * 数字编码
+ * 0-9 . -
+ */
+uint8_t QYH04418_NUMBERS[] = { 0XEB, 0X60, 0XC7, 0XE5, 0X6C, 0XAD, 0XAF, 0XE0, 0XEF, 0XED, 0X10, 0X04};
 
 /**
  * @brief 初始化HT1621B，包括GPIO端口和发送初始化命令
@@ -157,89 +159,81 @@ void HT1621B_Scan(uint8_t StartAddress, uint8_t EndAddress)
 }
 
 /**
- * @brief 显示一个最大不超过5位的整数数字
- * @note 数字范围0~99999
+ * @brief 显示一个最大不超过5位的数字（可含符号和点号）
+ * @note 最多显示5位，超过5位只显示最后5位；最后一位不能是点号，否则会与摄氏度符号冲突
  * @param Number 要显示的数字
- * @param Dot_Position 在特定位置显示点号，0表示不显示，1~4表示特定位置
+ * @param Length 字符串长度
  * @return None
  */
-void QYH04418_Number(double Number, uint8_t Dot_Position)
+void QYH04418_Number(volatile char *Number, uint8_t Length)
 {
-	int8_t addr;
-	uint8_t has_digit = 0;
-	uint8_t value;
-	uint32_t base = 10000, num;
-	if (Dot_Position > 4) return;
+	volatile int8_t i, addr = 9, idx;
+	volatile uint8_t	value;
+	volatile uint8_t dot_flag = 0;
 	
-	for (uint8_t i = 4; i >= Dot_Position; i --) {
-		Number *= 10;
-	}
-	if (Number > 99999 || Number < -9999) return;
-	
-	if (Number < 0) num = -Number;
-	else num = Number;
-	
-	for (addr = 1; addr <= 9; addr += 2)
-	{
-		uint8_t idx = (num / base) % 10;
-		if (idx != 0 && has_digit == 0)
-		{
-			// 第一次开始显示数字，那么如果是负数，则在前一位显示“-”号
-			if (Number < 0 && idx > 1)
-			{
-				value = 1 << 2;
-				HT1621B_WriteRAM(addr - 3, value << 4);
-			}
-			has_digit = 1;
+	// 如果超过5位，只显示后面5位（含符号，小数点不占位数）
+	for (i = Length - 1; i >= 0; i --) {
+		idx = Number[i];
+		if (idx >= '0' && idx <= '9') idx -= '0';
+		else if (idx == '.') {
+			dot_flag = 1;
+			continue;
 		}
+		else if (idx == '-') idx = 11;
+		else continue;
 		
-		if (has_digit == 1)
-		{
-			value = HT1621B_NUMBERS[idx];
+		value = QYH04418_NUMBERS[idx];
+		// 看看前一位是否位'.'，若是，在本位上加上点号
+		if (dot_flag) {
+			value |= QYH04418_NUMBERS[10];
+			dot_flag = 0;
 		}
-		else
-		{
-			value = 0;
-		}
-		// 是否需要显示小数点
-		if (addr / 2 + 1 == Dot_Position)
-		{
-			value = value | (1 << 4);
-		}
-		HT1621B_WriteRAM(addr, value);
-		HT1621B_WriteRAM(addr - 1, value << 4);
-		num -= idx * base;
-		base /= 10;
+		HT1621B_WriteRAM(addr --, value);
+		HT1621B_WriteRAM(addr --, value << 4);
+		// 写完5位后就忽略后面的
+		if (addr == 0xff) break;
+	}
+	
+	// 把剩余的位数清掉
+	for (i = addr; i >= 0; i --) {
+		HT1621B_WriteRAM(i, 0);
 	}
 }
 
 /**
  * @brief 显示摄氏度（带符号）
- * @param Value 要显示的温度（浮点数）
+ * @param Value 要显示的摄氏度
  * @param Dot_Position 小数点的位置，从左起， 0表示没有小数点）
  * @note 小数位数与小数点是相反的，如果小数位数为1，则Dot_Position取4，若
  *       小数位数为4，则Dot_Position取1
  */
-void QYH04418_Celsius(double Value, uint8_t Dot_Position)
+void QYH04418_Celsius(char *Number, uint8_t Length)
 {
 	// 清除百分比单位
 	HT1621B_WriteRAM(9, 0);
-	QYH04418_Number(Value, Dot_Position);
+	
+	QYH04418_Number(Number, Length);
+	// 整个第10段只有一个摄氏度符号，所以全部置1即可
 	HT1621B_WriteRAM(10, 0xFF);
 }
-void QYH04418_Percent(double Value, uint8_t Dot_Position)
+
+
+void QYH04418_Percent(char *Number, uint8_t Length)
 {
-	int num;
+	uint8_t num;
 	// 清除摄氏度单位
 	HT1621B_WriteRAM(10, 0);
 	
-	QYH04418_Number(Value, Dot_Position);
-	for (uint8_t i = 4; i >= Dot_Position; i --) {
-		Value *= 10;
-	}
-	if (Value < 0) num = -Value;
-	else num = Value;
-	uint8_t value = HT1621B_NUMBERS[num % 10];
+	QYH04418_Number(Number, Length);
+	
+	// 把最后一位数字的内存上通过位运算把百分比符号加上
+	// 跳过结尾处的'.'号
+	while (!((Number[Length - 1] >= '0' && Number[Length - 1] <= '9') || (Number[Length - 1] == '-'))) Length --;
+	num = Number[Length - 1];
+	if (num >= '0' && num <= '9') num -= '0';
+	else if (num == '-') num = 11;
+	
+	uint8_t value = QYH04418_NUMBERS[num];
 	value = value | ( 1 << 4);
 	HT1621B_WriteRAM(9, value);
 }
