@@ -8,10 +8,7 @@
 extern C {
 #endif
 
-#define HT1621_CS_Pin GPIO_PIN_10
-#define HT1621_WR_Pin GPIO_PIN_11
-#define HT1621_DATA_Pin GPIO_PIN_12
-#define HT1621_GPIO_PORT GPIOB
+#include "ht1621b_config.h"
 
 #define HT1621_CS1     HAL_GPIO_WritePin(HT1621_GPIO_PORT, HT1621_CS_Pin, GPIO_PIN_SET)
 #define HT1621_CS0     HAL_GPIO_WritePin(HT1621_GPIO_PORT, HT1621_CS_Pin, GPIO_PIN_RESET)
